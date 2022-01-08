@@ -19,9 +19,8 @@ def initialize_database(db, dbCursor):
         prescribed bool,
         tablet bool,
         price float NOT NULL,
-        children VARCHAR(6),
+        children VARCHAR(6) NOT NULL,
         accessories bool,
         stock INT
     )""")
-    # dbCursor.execute("insert into productdetails(name, prescribed, tablet, price, children, accessories, stock) VALUES ('dolo', False, True, 2, 'common', False, 20)")
     db.commit()
