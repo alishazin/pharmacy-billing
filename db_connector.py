@@ -23,4 +23,11 @@ def initialize_database(db, dbCursor):
         accessories bool,
         stock INT
     )""")
+
+    # Table 2
+    dbCursor.execute("""create table customerdetails (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        contact_no VARCHAR(20) UNIQUE, 
+        name VARCHAR(100)
+    )""")
     db.commit()
