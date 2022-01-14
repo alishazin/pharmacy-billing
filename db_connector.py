@@ -30,4 +30,19 @@ def initialize_database(db, dbCursor):
         contact_no VARCHAR(20) UNIQUE, 
         name VARCHAR(100)
     )""")
+
+    # Table 3
+    dbCursor.execute("""create table billextra (
+        bill_id INT PRIMARY KEY UNIQUE,
+        cus_id INT,
+        CONSTRAINT fk_cus_id FOREIGN KEY (cus_id) REFERENCES customerdetails(id)
+    )""")
+
+    # Table 4
+    dbCursor.execute("""create table bill (
+        id INT,
+        prod_name VARCHAR(100),
+        quantity INT,
+        CONSTRAINT fk_bill_id FOREIGN KEY (id) REFERENCES billextra(bill_id)
+    )""")
     db.commit()

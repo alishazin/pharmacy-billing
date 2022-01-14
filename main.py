@@ -307,7 +307,40 @@ def enter_bill_interface(customerContactNo, customerName):
         elif loopCommand == 'end':
             break
 
-    print(productDict)
+    billId = add_data_to_bill_extra(customerContactNo)
+    add_data_to_bill(billId, productDict)
+    reduce_from_stock(productDict)
+
+def reduce_from_stock(productDict):
+    for key, values in productDict.items():
+        DB_CURSOR.execute(f"select stock from productdetails where name = '{key}'")
+        currentStock = DB_CURSOR.fetchall()[0][0]
+        DB_CURSOR.execute(f"update productdetails SET stock = '{currentStock - values}' WHERE name = '{key}'")
+    DB_OBJECT.commit()
+
+def add_data_to_bill_extra(conNo):
+    billId = get_latest_bill_id()
+    cusId = get_cus_id_from_contact_no(conNo)
+    DB_CURSOR.execute(f"insert into billextra values({billId},{cusId})")
+    DB_OBJECT.commit()
+    return billId
+
+def add_data_to_bill(id, productDict):
+    for key, value in productDict.items():
+        DB_CURSOR.execute(f"insert into bill values({id},'{key}', {value})")
+    DB_OBJECT.commit()
+
+def get_cus_id_from_contact_no(conNo):
+    DB_CURSOR.execute(f"select id from customerdetails where contact_no = '{conNo}'")
+    result = DB_CURSOR.fetchall()[0][0]
+    return result
+
+def get_latest_bill_id():
+    DB_CURSOR.execute("select MAX(bill_id) from billextra")
+    result = DB_CURSOR.fetchall()[0][0]
+    if result == None:
+        return 1
+    return result + 1
 
 def check_if_required_stock_left(productName, productQuantity, productDict):
     DB_CURSOR.execute(f"select stock from productdetails where name = '{productName}'")
