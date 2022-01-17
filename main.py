@@ -510,8 +510,7 @@ def home_page():
         print("Error : Invalid Option!")
         home_page()
 
-# usernameFromUser = input("Enter your MySql Username : ")
-# passwordFromUser = input("Enter your MySql Password : ")
+usernameFromUser = input("Enter your MySql Username : ")
+passwordFromUser = input("Enter your MySql Password : ")
 
-# log_in(usernameFromUser, passwordFromUser)
-log_in('root', 'physicssucks')
+log_in(usernameFromUser, passwordFromUser)
