@@ -1,6 +1,9 @@
+from turtle import home
 import db_connector
 import mysql.connector as conn
 from prettytable import PrettyTable
+
+import os
 
 def strip_input(text):
     return input(text).strip()
@@ -310,6 +313,33 @@ def enter_bill_interface(customerContactNo, customerName):
     billId = add_data_to_bill_extra(customerContactNo)
     add_data_to_bill(billId, productDict)
     reduce_from_stock(productDict)
+    calculate_bill(productDict, customerContactNo, customerName, billId)
+
+def calculate_bill(productDict, customerContactNo, customerName, billID):
+    count = 1
+    allTotal = 0
+    table = PrettyTable(['S.No', 'Name', 'Quantity', 'Price', 'Total'])
+    for name, quantity in productDict.items():
+        price = get_price_from_product_name(name)
+        total = quantity * price
+        table.add_row([count, name, quantity, price, total])
+        count += 1
+        allTotal += total
+    display_bill(table, allTotal, customerContactNo, customerName, billID)
+
+def display_bill(table, total, cusCon, cusName, billID):
+    with open('bill.txt', 'w') as file:
+        file.write(f"Bill ID : {billID}\nCustomer Name : {cusName}\nContact Number : {cusCon}\n\n{table}\n\nTotal : {total}")
+
+    os.popen('bill.txt')
+    print("Bill Displayed Successfully")
+    input("Press enter to continue : ")
+    home_page()
+
+def get_price_from_product_name(name):
+    DB_CURSOR.execute(f"select price from productdetails where name = '{name}'")
+    result = DB_CURSOR.fetchall()[0][0]
+    return result
 
 def reduce_from_stock(productDict):
     for key, values in productDict.items():
@@ -319,7 +349,7 @@ def reduce_from_stock(productDict):
     DB_OBJECT.commit()
 
 def add_data_to_bill_extra(conNo):
-    billId = get_latest_bill_id()
+    billId = get_latest_bill_id() + 1
     cusId = get_cus_id_from_contact_no(conNo)
     DB_CURSOR.execute(f"insert into billextra values({billId},{cusId})")
     DB_OBJECT.commit()
@@ -339,8 +369,8 @@ def get_latest_bill_id():
     DB_CURSOR.execute("select MAX(bill_id) from billextra")
     result = DB_CURSOR.fetchall()[0][0]
     if result == None:
-        return 1
-    return result + 1
+        return 0
+    return result
 
 def check_if_required_stock_left(productName, productQuantity, productDict):
     DB_CURSOR.execute(f"select stock from productdetails where name = '{productName}'")
@@ -380,13 +410,90 @@ def check_if_customer_exist(conNo):
         return False
     return True
 
+def view_bill_interface():
+
+    while True:
+        billID = strip_input("Enter ID of the bill : ")
+        if len(billID) == 0:
+            print("Error : ID cannot be NULL")
+            continue
+        if not billID.isnumeric():
+            print("Error : ID should be numeric")
+            continue
+        else:
+            cusID = check_if_bill_exists(billID)
+            if cusID == False:
+                print(f"Error : Bill with ID '{billID}' does not exist")
+                continue
+            break
+
+    calculate_older_bill(cusID, billID)
+
+def view_latest_bill():
+    billID = get_latest_bill_id()
+    cusID = check_if_bill_exists(billID)
+    calculate_older_bill(cusID, billID)
+
+def calculate_older_bill(cusID, billID):
+    customerDetails = get_customer_details_from_id(cusID)
+    customerContactNumber = customerDetails[0]
+    customerName = customerDetails[1]
+
+    productDict = get_bill_details_from_id(billID)
+    calculate_bill(productDict, customerContactNumber, customerName, billID)
+
+def get_customer_details_from_id(id):
+    DB_CURSOR.execute(f"select contact_no, name from customerdetails where id = '{id}'")
+    result = DB_CURSOR.fetchall()
+    return [result[0][0], result[0][1]]
+
+def get_bill_details_from_id(id):
+    DB_CURSOR.execute(f"select prod_name, quantity from bill where id = '{id}'")
+    result = DB_CURSOR.fetchall()
+
+    returnDict = {}
+    for row in result:
+        returnDict[row[0]] = row[1]
+    return returnDict
+
+def check_if_bill_exists(id):
+    DB_CURSOR.execute(f"select cus_id from billextra where bill_id = '{id}'")
+    result = DB_CURSOR.fetchall()
+    if len(result) > 0:
+        return result[0][0]
+    return False
+
+def bill_page():
+    if get_latest_bill_id() == 0:
+        print("Error : There are no existing bills!")
+        input("Press enter to continue : ")
+        home_page()
+    else:
+        print("""
+    ---Bill Page---
+    1. View Latest Bill
+    2. View Bill Using ID
+    3. Go Back To Home Page
+        """)
+        choice = input("Enter Your Choice : ")
+        if choice == '1':
+            view_latest_bill()
+        elif choice == '2':
+            view_bill_interface()
+        elif choice == '3':
+            home_page()
+        else:
+            print("Error : Invalid Option!")
+            bill_page()
+
 def home_page():
     print("""
     ---Home Page---
     1. Enter Bill
     2. Add Product
     3. View Products
-    4. Exit
+    4. View Older Bills
+    5. Exit
     """)
     choice = input("Enter Your Choice : ")
     if choice == '1':
@@ -396,12 +503,15 @@ def home_page():
     elif choice == '3':
         view_product_page()
     elif choice == '4':
+        bill_page()
+    elif choice == '5':
         pass
     else:
         print("Error : Invalid Option!")
         home_page()
 
-usernameFromUser = input("Enter your MySql Username : ")
-passwordFromUser = input("Enter your MySql Password : ")
+# usernameFromUser = input("Enter your MySql Username : ")
+# passwordFromUser = input("Enter your MySql Password : ")
 
-log_in(usernameFromUser, passwordFromUser)
+# log_in(usernameFromUser, passwordFromUser)
+log_in('root', 'physicssucks')
