@@ -414,9 +414,6 @@ def view_bill_interface():
 
     while True:
         billID = strip_input("Enter ID of the bill : ")
-        if len(billID) == 0:
-            print("Error : ID cannot be NULL")
-            continue
         if not billID.isnumeric():
             print("Error : ID should be numeric")
             continue
@@ -486,6 +483,91 @@ def bill_page():
             print("Error : Invalid Option!")
             bill_page()
 
+def add_stock_using_id_interface():
+    while True:
+        productID = strip_input("Enter ID of the Product : ")
+        if not productID.isnumeric():
+            print("Error : ID should be numeric")
+            continue
+        else:
+            currentStock = check_if_product_id_exists(productID)
+            if currentStock == False:
+                print(f"Error : Product with ID '{productID}' does not exist")
+                continue
+            break
+
+    add_stock_interface(productID, currentStock)
+
+def add_stock_using_name_interface():
+    while True:
+        productName = strip_input("Enter Name of the Product : ")
+        if len(productName) == 0:
+            print("Error : Product Name should not be NULL")
+            continue
+        else:
+            currentStock = check_if_product_name_exists(productName)
+            if currentStock == False:
+                print(f"Error : Product with Name '{productName}' does not exist")
+                continue
+            break
+
+    add_stock_interface(productName, currentStock, True)
+
+def check_if_product_name_exists(name):
+    DB_CURSOR.execute(f"select stock from productdetails where name = '{name}'")
+    result = DB_CURSOR.fetchall()
+    if len(result) > 0:
+        return result[0][0]
+    return False
+
+def add_stock_interface(IDOrName, currentStock, using_name = False):
+    if using_name:
+        print(f"Product with Name '{IDOrName}' has '{currentStock}' stocks remaining")
+    else:
+        print(f"Product with ID '{IDOrName}' has '{currentStock}' stocks remaining")
+
+    while True:
+        stockAdd = strip_input("Enter number of stock to add : ")
+        if not stockAdd.isnumeric():
+            print("Error : Stock should be numeric")
+            continue
+        break
+
+    if using_name:
+        DB_CURSOR.execute(f"update productdetails set stock = '{currentStock + int(stockAdd)}' where name = '{IDOrName}'")
+    else:
+        DB_CURSOR.execute(f"update productdetails set stock = '{currentStock + int(stockAdd)}' where id = '{IDOrName}'")
+
+    DB_OBJECT.commit()
+    print(f"Stock is successfully updated to {currentStock + int(stockAdd)}")
+    input("Press enter to continue : ")
+    home_page()
+
+def check_if_product_id_exists(id):
+    DB_CURSOR.execute(f"select stock from productdetails where id = '{id}'")
+    result = DB_CURSOR.fetchall()
+    if len(result) > 0:
+        return result[0][0]
+    return False
+
+def stock_page():
+    print("""
+    ---Stock Page---
+    1. Add Stock Using ID
+    2. Add Stock Using Name
+    3. Go Back To Home Page
+    """)
+    choice = input("Enter Your Choice : ")
+    if choice == '1':
+        add_stock_using_id_interface()
+    elif choice == '2':
+        add_stock_using_name_interface()
+    elif choice == '3':
+        home_page()
+    else:
+        print("Error : Invalid Option!")
+        bill_page()
+
 def home_page():
     print("""
     ---Home Page---
@@ -493,7 +575,8 @@ def home_page():
     2. Add Product
     3. View Products
     4. View Older Bills
-    5. Exit
+    5. Add Stock
+    6. Exit
     """)
     choice = input("Enter Your Choice : ")
     if choice == '1':
@@ -505,6 +588,8 @@ def home_page():
     elif choice == '4':
         bill_page()
     elif choice == '5':
+        stock_page()
+    elif choice == '6':
         pass
     else:
         print("Error : Invalid Option!")
