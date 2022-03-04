@@ -31,6 +31,9 @@ def add_accessory_interface():
         if len(name) == 0:
             print("Error : Name cannot be NULL")
             continue
+        elif check_if_product_exist(name):
+            print(f"Error : Product '{name}' already exist")
+            continue
         else:
             break
     
@@ -75,6 +78,9 @@ def add_medicine_interface():
         name = strip_input("Enter name of the medicine : ")
         if len(name) == 0:
             print("Error : Name cannot be NULL")
+            continue
+        elif check_if_product_exist(name):
+            print(f"Error : Product '{name}' already exist")
             continue
         else:
             break
