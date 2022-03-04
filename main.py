@@ -1,4 +1,3 @@
-from turtle import home
 import db_connector
 import mysql.connector as conn
 from prettytable import PrettyTable
