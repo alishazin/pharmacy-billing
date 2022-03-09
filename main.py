@@ -1,3 +1,4 @@
+
 import db_connector
 import mysql.connector as conn
 from prettytable import PrettyTable
@@ -496,7 +497,7 @@ def add_stock_using_id_interface():
             continue
         else:
             currentStock = check_if_product_id_exists(productID)
-            if currentStock == False:
+            if currentStock == 'False':
                 print(f"Error : Product with ID '{productID}' does not exist")
                 continue
             break
@@ -511,7 +512,7 @@ def add_stock_using_name_interface():
             continue
         else:
             currentStock = check_if_product_name_exists(productName)
-            if currentStock == False:
+            if currentStock == 'False':
                 print(f"Error : Product with Name '{productName}' does not exist")
                 continue
             break
@@ -523,7 +524,7 @@ def check_if_product_name_exists(name):
     result = DB_CURSOR.fetchall()
     if len(result) > 0:
         return result[0][0]
-    return False
+    return 'False'
 
 def add_stock_interface(IDOrName, currentStock, using_name = False):
     if using_name:
@@ -551,9 +552,10 @@ def add_stock_interface(IDOrName, currentStock, using_name = False):
 def check_if_product_id_exists(id):
     DB_CURSOR.execute(f"select stock from productdetails where id = '{id}'")
     result = DB_CURSOR.fetchall()
+    print(result)
     if len(result) > 0:
         return result[0][0]
-    return False
+    return 'False'
 
 def stock_page():
     print("""
